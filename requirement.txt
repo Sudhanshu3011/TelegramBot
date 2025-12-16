@@ -1,0 +1,10 @@
+langchain
+langgraph
+python-dotenv
+langchain-groq
+langchain-openai
+streamlit
+streamlit-on-hover-tabs 
+streamlit-toggle-switch
+fastapi 
+uvicorn

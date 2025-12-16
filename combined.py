@@ -75,8 +75,13 @@ async def chat(req: ChatRequest):
     prompt = build_recent_prompt(history)
     llm = ChatGroq(groq_api_key=groq_api_key, model_name=DEFAULT_MODEL, temperature=0.7, streaming=False)
     chain = prompt | llm | StrOutputParser()
-
-    answer = chain.invoke({"question": message})
+    
+    try:
+        answer = chain.invoke({"question": message})
+    except Exception as e:
+        print("Groq error:",e)
+        answer = "⚠️ Temporary error from AI. Please try again."
+        
     history.append({"role": "assistant", "content": answer})
     save_memory(username, history)
 
@@ -107,7 +112,11 @@ async def telegram_webhook(req: Request):
     send_typing(chat_id)
 
     # Use chat_id as memory username
-    result = await chat(ChatRequest(username=str(chat_id), message=text, api_key=None))
-    bot_reply = result.get("answer", result.get("error", "Sorry, something went wrong."))
+    try:
+       result = await chat(ChatRequest(username=str(chat_id), message=text, api_key=None))
+       bot_reply = result.get("answer","⚠️ No response from AI.")
+    except Exception as e:
+        print("Telegram webhook error:",e)
+        bot_reply="⚠️ Bot is temporarily unavailable."
     send_telegram_msg(chat_id, bot_reply)
     return {"ok": True}
